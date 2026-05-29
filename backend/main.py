@@ -1,9 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import anthropic
 import os
 from dotenv import load_dotenv
+from pypdf import PdfReader
+import io
 
 load_dotenv()
 
@@ -12,7 +14,8 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000","http://localhost:5173"],
+    #allow_origins=["http://localhost:3000","http://localhost:5173"],
+    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:5173"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -56,6 +59,38 @@ async def analyse(request: AnalyseRequest):
     )
 
     return {"result": message.content[0].text}
+
+@app.post("/upload-cv")
+async def upload_cv(file: UploadFile = File(...)):
+    # Read the uploaded file into memory
+    contents = await file.read()
+    
+    # Open the PDF from memory
+    pdf = PdfReader(io.BytesIO(contents))
+    
+    # Extract all text from every page
+    text = ""
+    for page in pdf.pages:
+        text += page.extract_text()
+    
+    # Chunk the text into 500 word pieces
+    words = text.split()
+    chunks = []
+    current_chunk = []
+    
+    for word in words:
+        current_chunk.append(word)
+        if len(current_chunk) >= 500:
+            chunks.append(" ".join(current_chunk))
+            current_chunk = []
+    
+    if current_chunk:
+        chunks.append(" ".join(current_chunk))
+    
+    # Join all chunks into one CV text
+    cv_text = "\n\n".join(chunks)
+    
+    return {"cv_text": cv_text}
 
 @app.get("/health")
 async def health():

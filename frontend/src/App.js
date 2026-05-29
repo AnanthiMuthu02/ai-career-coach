@@ -5,6 +5,7 @@ function App() {
   const [jobDescription, setJobDescription] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState(false);
 
   function parseResult(text) {
     const score = text.match(/SCORE:\s*(\d+)/)?.[1];
@@ -12,6 +13,25 @@ function App() {
     const missing = text.match(/MISSING:\s*(.+)/)?.[1];
     const summary = text.match(/SUMMARY:\s*([\s\S]+)/)?.[1];
     return { score, matching, missing, summary };
+  }
+
+  async function handleFileUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadLoading(true);
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("http://localhost:8000/upload-cv", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await response.json();
+    setCv(data.cv_text);
+    setUploadLoading(false);
   }
 
   async function analyseCV() {
@@ -33,13 +53,37 @@ function App() {
     <div style={{ maxWidth: "800px", margin: "40px auto", padding: "20px", fontFamily: "Arial" }}>
       <h1>🤖 AI Career Coach</h1>
 
-      <h3>Paste your CV:</h3>
+      <h3>Your CV:</h3>
+
+      <div style={{ marginBottom: "10px" }}>
+        <label style={{
+          display: "inline-block",
+          padding: "8px 20px",
+          background: "#4F46E5",
+          color: "white",
+          borderRadius: "6px",
+          cursor: "pointer",
+          fontSize: "14px"
+        }}>
+          {uploadLoading ? "Reading PDF..." : "Upload CV (PDF)"}
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={handleFileUpload}
+            style={{ display: "none" }}
+          />
+        </label>
+        <span style={{ marginLeft: "10px", color: "#6B7280", fontSize: "13px" }}>
+          or paste your CV below
+        </span>
+      </div>
+
       <textarea
         rows={10}
         style={{ width: "100%", padding: "10px" }}
         value={cv}
         onChange={(e) => setCv(e.target.value)}
-        placeholder="Paste your CV here..."
+        placeholder="Paste your CV here, or upload a PDF above..."
       />
 
       <h3>Paste the Job Description:</h3>
@@ -52,7 +96,15 @@ function App() {
       />
 
       <br /><br />
-      <button onClick={analyseCV} style={{ padding: "10px 30px", fontSize: "16px", background: "#4F46E5", color: "white", border: "none", borderRadius: "8px", cursor: "pointer" }}>
+      <button onClick={analyseCV} style={{
+        padding: "10px 30px",
+        fontSize: "16px",
+        background: "#4F46E5",
+        color: "white",
+        border: "none",
+        borderRadius: "8px",
+        cursor: "pointer"
+      }}>
         {loading ? "Analysing..." : "Analyse My CV"}
       </button>
 
