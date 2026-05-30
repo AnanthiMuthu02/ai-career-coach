@@ -24,7 +24,7 @@ function App() {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch("https://ai-career-coach-77d8.onrender.com", {
+    const response = await fetch("https://ai-career-coach-77d8.onrender.com/upload-cv", {
       method: "POST",
       body: formData,
     });
