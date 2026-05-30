@@ -24,7 +24,7 @@ function App() {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await fetch("http://localhost:8000/upload-cv", {
+    const response = await fetch("https://ai-career-coach-77d8.onrender.com", {
       method: "POST",
       body: formData,
     });
@@ -38,7 +38,7 @@ function App() {
     setLoading(true);
     setResult(null);
 
-    const response = await fetch("http://localhost:8000/analyse", {
+    const response = await fetch("https://ai-career-coach-77d8.onrender.com/analyse", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ cv, job_description: jobDescription }),
