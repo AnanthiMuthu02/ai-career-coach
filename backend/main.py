@@ -87,7 +87,9 @@ async def upload_cv(file: UploadFile = File(...)):
     if current_chunk:
         chunks.append(" ".join(current_chunk))
     
-    # Join all chunks into one CV text
+    # Join all chunks into one CV text  new test
+
+
     cv_text = "\n\n".join(chunks)
     
     return {"cv_text": cv_text}
